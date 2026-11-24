@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResidIAMED — Plataforma de questões</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F7F6FC; --surface:#FFFFFF; --primary:#4B3F8F; --primary-dark:#332A66;
+    --primary-light:#EEEBFB; --text:#231F3D; --text-sec:#69637F; --border:#E7E3F6;
+    --success:#2F9E6E; --success-bg:#E7F6EF; --amber:#B5790E; --amber-bg:#FBF0DD; --danger:#C85A42; --danger-bg:#FBEBE6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Plus Jakarta Sans',system-ui,sans-serif;margin:0;}
+  button{cursor:pointer;font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  input{font-family:inherit;}
+  .wrap{width:100%;max-width:900px;margin:0 auto;padding:28px 16px 90px;}
+  .narrow{max-width:760px;}
+  .topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;}
+  .logo{display:flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans';font-weight:800;font-size:18px;color:var(--primary-dark);}
+  .logo .rot{display:inline-block;transform:rotate(-8deg);}
+  .nav{display:flex;gap:2px;flex-wrap:wrap;}
+  .nav button{background:none;border:none;font-size:13px;font-weight:600;color:var(--text-sec);padding:8px 10px;border-radius:8px;white-space:nowrap;}
+  .nav button.active{color:var(--primary);background:var(--primary-light);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;}
+  .btn{padding:12px 24px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:600;}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:600;}
+  .hidden{display:none;}
+  .pill{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;color:var(--text);}
+  .pill.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .tag{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--text-sec);margin:0;}
+  .seg{display:flex;background:#F2F0FA;border-radius:10px;padding:3px;}
+  .seg button{padding:8px 14px;border-radius:7px;border:none;font-size:12.5px;font-weight:600;background:transparent;color:var(--text-sec);}
+  .seg button.on{background:#fff;color:var(--primary-dark);}
+  .alt{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);}
+  .alt-main{display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;background:none;border:none;text-align:left;padding:0;font:inherit;}
+  .radio{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:2px solid #C9C3E8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-sec);background:#fff;}
+  .disc{flex-shrink:0;width:50px;height:38px;border-radius:10px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .barwrap{height:10px;border-radius:6px;background:#ECE9F6;overflow:hidden;}
+  @media(max-width:620px){ .grid4{grid-template-columns:repeat(2,1fr);} .nav button{padding:7px 7px;font-size:12px;} }
+  @media(max-width:520px){ .wrap{padding:18px 12px 70px;} .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 30 30" fill="none"><rect x="1" y="1" width="28" height="28" rx="9" fill="var(--primary)"/><path d="M9 15.5L13 19.5L21 10.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span><span class="rot">R</span>esidIA<span class="rot">M</span>ED</span>
+    </div>
+    <div class="nav" id="nav">
+      <button data-nav="inicio">Início</button>
+      <button data-nav="questoes">Questões</button>
+      <button data-nav="flashcards">Flashcards</button>
+      <button data-nav="resumos">Resumos</button>
+      <button data-nav="dashboard">Dashboard</button>
+      <button data-nav="admin">Admin</button>
+    </div>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<script>
+/* ---------------- DADOS ---------------- */
+const QUESTIONS = [
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — ITU (Infecção do Trato Urinário)",
+   enunciado:"Lactente de 8 meses, sexo feminino, com febre de 38,5°C há 36h, irritabilidade e recusa alimentar parcial. Exame sem foco (orofaringe, otoscopia e ausculta normais), enchimento capilar normal, diurese presente.",
+   comando:"Qual a conduta mais adequada?",dif:"média",acc:63,
+   aiq:"Por que não iniciar antibiótico empírico logo?",aia:"Sem confirmar o foco, você trataria às cegas. O certo é coletar EAS e urocultura (por cateterismo) e então tratar direcionado.",
+   fund:"Febre sem foco por mais de 24h em lactente obriga a investigar ITU. Em criança sem controle esfincteriano, a coleta confiável é por cateterismo vesical (não saco coletor).",
+   fonte:"Consenso de ITU na infância — Sociedade Brasileira de Pediatria (SBP), 2023.",
+   alts:[["A","Solicitar apenas hemograma e PCR, aguardando 48h",0,"Inespecíficos; não substituem a investigação urinária."],["B","Iniciar amoxicilina empírica para otite subclínica",0,"Não há foco otológico ao exame."],["C","Coletar EAS e urocultura por cateterismo vesical",1,"Correta: febre sem foco >24h em lactente exige investigar ITU; sem controle esfincteriano, coleta por cateterismo."],["D","Orientar apenas antitérmico e retorno se piora",0,"Recusa e irritabilidade sem foco exigem investigação ativa."],["E","Radiografia de tórax para excluir pneumonia oculta",0,"Não há sinais respiratórios que justifiquem."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — ITU (Infecção do Trato Urinário)",
+   enunciado:"Menino de 14 meses, primeiro episódio de pielonefrite confirmado por urocultura (cateterismo vesical), evolui bem após antibioticoterapia.",
+   comando:"Qual investigação por imagem é indicada, segundo o Consenso SBP 2023?",dif:"média",acc:58,
+   aiq:"A ultrassonografia (USG) já basta?",aia:"No 1º episódio em menor de 2 anos, a USG é o exame inicial. UCM e DMSA só entram depois, conforme achados.",
+   fund:"No 1º episódio de pielonefrite em menor de 2 anos, a USG (Ultrassonografia) de rins e vias urinárias é o exame inicial; UCM (Uretrocistografia Miccional) e DMSA (Cintilografia Renal) são posteriores.",
+   fonte:"Consenso de ITU na infância — Sociedade Brasileira de Pediatria (SBP), 2023.",
+   alts:[["A","Nenhuma, só a partir da 2ª infecção",0,"O Consenso SBP 2023 recomenda investigar já no 1º episódio em <2 anos."],["B","Uretrocistografia Miccional (UCM) imediata",0,"A UCM exige urocultura negativa e vem depois da USG."],["C","Ultrassonografia (USG) de rins e vias urinárias",1,"Correta: exame inicial, não invasivo, para todo menor de 2 anos no 1º episódio."],["D","Cintilografia Renal (DMSA) como 1º exame",0,"O DMSA é complementar, após USG alterada ou ITU de repetição."],["E","Tomografia de abdome com contraste",0,"Não é o exame indicado nesse fluxograma."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — ITU (Infecção do Trato Urinário)",
+   enunciado:"Lactente de 6 semanas, febre e diagnóstico presuntivo de pielonefrite, em bom estado geral, ainda sem urocultura.",
+   comando:"Qual a conduta quanto à internação?",dif:"média",acc:60,
+   aiq:"Se está bem, não pode tratar em casa?",aia:"Não. Abaixo de 2 meses a internação é obrigatória pelo risco de sepse, mesmo em bom estado geral.",
+   fund:"No lactente menor de 2 meses com suspeita de pielonefrite, a internação é mandatória pelo risco de sepse/bacteremia e absorção oral incerta, independentemente do estado geral.",
+   fonte:"Consenso de ITU na infância — Sociedade Brasileira de Pediatria (SBP), 2023.",
+   alts:[["A","Tratamento ambulatorial, pois está bem",0,"Bom estado geral não descarta risco de sepse nessa idade."],["B","Internação obrigatória, pela idade <2 meses",1,"Correta: menores de 2 meses têm internação obrigatória."],["C","Observação domiciliar com retorno em 24h",0,"Contraria o critério etário mandatório."],["D","Alta com antibiótico oral e reavaliação em 5 dias",0,"Contraria o critério etário mandatório."],["E","Internar apenas se houver desidratação",0,"O critério etário isolado já basta."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — ITU (Infecção do Trato Urinário)",
+   enunciado:"Criança de 3 anos, com dois episódios prévios de pielonefrite, em investigação de malformações do trato urinário.",
+   comando:"Qual conduta medicamentosa manter enquanto aguarda os exames?",dif:"média",acc:55,
+   aiq:"Por que subdose e não dose plena?",aia:"A profilaxia usa subdose contínua para suprimir colonização; dose plena é para tratar, não prevenir.",
+   fund:"ITU febril de repetição é critério de quimioprofilaxia: antibiótico em subdose contínua até a investigação de imagem definir a causa (ex.: refluxo vesicoureteral).",
+   fonte:"Consenso de ITU na infância — Sociedade Brasileira de Pediatria (SBP), 2023.",
+   alts:[["A","Suspender antibiótico até definição diagnóstica",0,"2 episódios de pielonefrite indicam profilaxia."],["B","Quimioprofilaxia em subdosagem (1/4 a 1/2 da dose)",1,"Correta: subdose contínua até concluir a investigação por imagem."],["C","Antibioticoterapia em dose plena contínua",0,"Dose plena não é a lógica da profilaxia."],["D","Nitrofurantoína em dose plena para qualquer idade",0,"A escolha depende da idade/contraindicações."],["E","Apenas hidratação oral aumentada",0,"Hidratação não substitui a profilaxia."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — ITU (Infecção do Trato Urinário)",
+   enunciado:"Menina de 5 anos com ardor ao urinar há 2 dias, sem febre. Genitália com hiperemia vulvar leve e assadura. EAS sem piúria ou nitrito.",
+   comando:"Qual a hipótese e a conduta mais prováveis?",dif:"fácil",acc:70,
+   aiq:"EAS normal descarta ITU mesmo?",aia:"Torna muito pouco provável. Com disúria + hiperemia vulvar e EAS limpo, o quadro é irritativo (vulvovaginite).",
+   fund:"Disúria sem piúria/nitrito e com hiperemia vulvar em menina pré-púbere aponta para vulvovaginite irritativa, não ITU — conduta é higiene local, sem antibiótico.",
+   fonte:"Consenso de ITU na infância — Sociedade Brasileira de Pediatria (SBP), 2023.",
+   alts:[["A","ITU afebril; nitrofurantoína empírica",0,"EAS normal torna ITU pouco provável."],["B","Vulvovaginite irritativa; higiene, sem antibiótico",1,"Correta: ardor com hiperemia por assadura e sem piúria."],["C","Abuso sexual; notificação imediata",0,"Não há lesões atípicas que sustentem."],["D","Oxiuríase; antiparasitário sem exame",0,"Sem prurido anal relatado."],["E","Corpo estranho vaginal; exame sob sedação",0,"Sem suspeita clínica que justifique."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — IC (Insuficiência Cardíaca)",
+   enunciado:"Lactente de 3 meses com dificuldade para mamar (pausas frequentes), sudorese cefálica e ganho de peso abaixo do esperado. Exame: taquipneia leve e taquicardia.",
+   comando:"Qual a interpretação fisiopatológica da dificuldade de mamar?",dif:"média",acc:64,
+   aiq:"Por que mamar cansa um bebê cardiopata?",aia:"Mamar é esforço físico; no coração sobrecarregado vira equivalente dispneico — pausas, sudorese e cansaço.",
+   fund:"No lactente, mamar é um esforço físico; dificuldade com pausas, sudorese e baixo ganho é um equivalente dispneico e sinal de insuficiência cardíaca.",
+   fonte:"Diretrizes de insuficiência cardíaca e cardiopatias na infância (SBC / SBP).",
+   alts:[["A","Refluxo gastroesofágico isolado",0,"O conjunto (sudorese, taquipneia, taquicardia, baixo ganho) aponta causa cardíaca."],["B","Equivalente dispneico (mamar exige esforço)",1,"Correta: dificuldade de mamar com pausas é equivalente dispneico."],["C","Comportamento alimentar habitual da idade",0,"Foge do padrão habitual."],["D","Alergia à proteína do leite de vaca",0,"Sem dados que sustentem."],["E","Consequência exclusiva de anemia ferropriva",0,"Sem dados que sustentem como causa principal."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — Cardiopatias congênitas",
+   enunciado:"Recém-nascido de 10 dias com pulsos femorais diminuídos em relação aos braquiais e diferença pressórica entre membros superiores e inferiores.",
+   comando:"Qual a hipótese diagnóstica e o risco temporal associado?",dif:"difícil",acc:48,
+   aiq:"Por que o risco é nas primeiras semanas?",aia:"Na coartação, enquanto o canal arterial está aberto o fluxo se mantém; ao fechar (1ª–3ª semana), descompensa.",
+   fund:"Assimetria de pulsos (membros inferiores < superiores) com gradiente pressórico no neonato é o sinal clássico da coartação de aorta; a descompensação ocorre ao fechar o canal arterial.",
+   fonte:"Diretrizes de cardiopatias congênitas na infância (SBC / SBP).",
+   alts:[["A","Persistência do Canal Arterial (PCA); risco após 6 meses",0,"A PCA cursa com pulsos amplos (martelo d'água), não assimetria."],["B","Coartação de aorta; risco entre 1 e 3 semanas de vida",1,"Correta: pulsos diminuídos em MMII vs MMSS com gradiente."],["C","Comunicação Interventricular (CIV); sem risco precoce",0,"A CIV causa sobrecarga de volume, sem esse padrão."],["D","Estenose pulmonar leve; sem urgência",0,"Não é o quadro descrito."],["E","Anomalia de Ebstein; lítio materno",0,"Não cursa com esse padrão de pulsos."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — IC (Insuficiência Cardíaca)",
+   enunciado:"Criança de 2 anos, cardiopata, internada com dispneia, extremidades frias, enchimento capilar de 6s, pressão arterial pinçada e leve confusão mental.",
+   comando:"Qual classificação hemodinâmica melhor descreve o quadro?",dif:"média",acc:59,
+   aiq:"Preciso de ecocardiograma para classificar?",aia:"Não. A classificação quente/frio e seco/úmido é clínica, à beira do leito.",
+   fund:"A classificação de perfil (quente/frio e seco/úmido) é clínica: sinais de má perfusão (frio, enchimento capilar alargado, PA pinçada, confusão) definem baixo débito.",
+   fonte:"Diretrizes de insuficiência cardíaca (perfis hemodinâmicos) — SBC.",
+   alts:[["A","Quente e seco",0,"Extremidades frias e TEC prolongado excluem o perfil Quente."],["B","Quente e úmido",0,"Os sinais de má perfusão excluem o perfil Quente."],["C","Frio e seco",0,"Compatível em parte, mas o eixo central aqui é o baixo débito."],["D","Perfil Frio (baixo débito)",1,"Correta: frias, TEC ≥5s, PA pinçada e confusão indicam baixo débito."],["E","Não dá para classificar sem eco",0,"A classificação é clínica."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — Arritmias",
+   enunciado:"Neonato em UTI (Unidade de Terapia Intensiva) com frequência cardíaca de 205 bpm sustentada, cogitando-se taquicardia supraventricular.",
+   comando:"Antes de reduzir bruscamente a frequência, qual raciocínio considerar?",dif:"difícil",acc:45,
+   aiq:"Qual o perigo de baixar a frequência rápido?",aia:"O débito do neonato depende muito da frequência; se for sinusal compensatória, derrubá-la rápido causa queda grave do débito.",
+   fund:"O débito cardíaco do neonato é muito dependente da frequência; antes de reverter, diferenciar sinusal compensatória de TSV (taquicardia supraventricular), pois reduzir uma compensação derruba o débito.",
+   fonte:"Diretrizes de arritmias e reanimação neonatal (SBP / SBC).",
+   alts:[["A","Pode ser compensatório; reduzir bruscamente é deletério",1,"Correta: sinusal até ~200-210 bpm pode ser compensatória."],["B","Acima de 200 bpm é sempre patológico; reverter já",0,"Nem toda taquicardia nessa faixa é patológica."],["C","O neonato não depende da frequência para o débito",0,"É o oposto — depende muito."],["D","Reduzir a frequência nunca traz riscos",0,"A redução brusca pode ser prejudicial."],["E","Taquicardia sinusal não ocorre em neonato de UTI",0,"É achado comum nesse contexto."]]},
+  {banca:"Autoral IA",ano:"—",conteudo:"Pediatria — IC (Insuficiência Cardíaca)",
+   enunciado:"Adolescente de 14 anos com miocardiopatia dilatada e FEVE (fração de ejeção do ventrículo esquerdo) de 28%, sintomático, já em uso de IECA (inibidor da enzima conversora de angiotensina) otimizado.",
+   comando:"Qual classe adicional é mais bem indicada, visando remodelamento?",dif:"difícil",acc:52,
+   aiq:"Por que não adicionar digoxina?",aia:"A digoxina alivia sintoma, mas não reduz mortalidade. O que muda remodelamento e prognóstico é o antagonista de aldosterona.",
+   fund:"Na IC com fração de ejeção reduzida sintomática, o antagonista de aldosterona (espironolactona) soma-se ao IECA pelo benefício em remodelamento e mortalidade; inotrópicos não são terapia crônica de base.",
+   fonte:"Diretrizes de insuficiência cardíaca com fração de ejeção reduzida (SBC).",
+   alts:[["A","Digoxina, pela ação inotrópica isolada",0,"Não reduz mortalidade e tem janela estreita."],["B","Espironolactona (sintomáticos com FEVE <30%)",1,"Correta: benefício em remodelamento e prognóstico."],["C","Nitrofurantoína, por efeito vasodilatador",0,"É antimicrobiano urinário, sem papel aqui."],["D","Milrinona por via oral contínua",0,"É intravenosa hospitalar, não terapia oral crônica."],["E","Suspender o IECA e usar só diurético de alça",0,"O diurético isolado não substitui o IECA."]]}
+];
+const ERRO_MSG={nao_lembrava:"Registrado como falha de memória — prioridade na revisão espaçada.",leu_errado:"Registrado como erro de interpretação — entra no radar de pegadinhas.",confundiu:"Registrado como confusão de conceitos — virão questões que contrastam os dois.",nao_sabia:"Registrado como conteúdo novo — vai para estudo de base antes das próximas."};
+const AREAS=[
+ {id:'cm',nome:'Clínica Médica',total:900,feitas:0,acerto:0,temas:[{t:'Cardiologia',a:['SCA — Síndrome Coronariana Aguda','IC — Insuficiência Cardíaca','Arritmias','HAS — Hipertensão Arterial']},{t:'Pneumologia',a:['Asma','DPOC — Doença Pulmonar Obstrutiva Crônica','Pneumonias']},{t:'Endocrinologia',a:['DM — Diabetes Mellitus','Tireoide']},{t:'Nefrologia',a:['IRA — Injúria Renal Aguda','DRC — Doença Renal Crônica']}]},
+ {id:'cir',nome:'Cirurgia Geral',total:640,feitas:0,acerto:0,temas:[{t:'Abdome agudo',a:['Apendicite','Colecistite','Obstrução intestinal']},{t:'Trauma',a:['ATLS — atendimento inicial','Trauma abdominal']},{t:'Cabeça e pescoço',a:['Tireoide','Cistos cervicais']}]},
+ {id:'go',nome:'Gineco-Obstetrícia',total:700,feitas:0,acerto:0,temas:[{t:'Pré-natal',a:['Rotina e exames','Sífilis e ISTs','DMG — Diabetes Mellitus Gestacional']},{t:'Sangramentos',a:['1ª metade (abortamento, ectópica, mola)','2ª metade (DPP, placenta prévia)']}]},
+ {id:'ped',nome:'Pediatria',total:620,feitas:10,acerto:0,temas:[{t:'Neonatologia',a:['Icterícia','Reanimação neonatal']},{t:'Infecções',a:['ITU — Infecção do Trato Urinário','Bronquiolite']},{t:'Cardiologia pediátrica',a:['IC — Insuficiência Cardíaca','Arritmias','Cardiopatias congênitas']}]},
+ {id:'prev',nome:'Medicina Preventiva',total:400,feitas:0,acerto:0,temas:[{t:'Epidemiologia',a:['Medidas de frequência','Tipos de estudo']},{t:'SUS',a:['Princípios e diretrizes','Atenção primária']}]}
+];
+
+/* ---------------- ESTADO ---------------- */
+const S={
+ view:'inicio',
+ // início/cronograma
+ cr:{prova:null,prazo:null,horas:null,criado:false,cview:'semanal',semana:1,selDia:null,msg:null},
+ // questões (filtros)
+ f:{modo:'treino',trilha:'direto',inter:false,rapido:{},areas:{},temas:{},aberta:null,bancas:{},anos:{},difs:{},origem:{},qtd:20,caderno:null},
+ // trainer
+ t:{i:0,sel:null,conf:null,answered:false,erro:null,struck:{}},
+ stats:{resp:0,acertos:0,fragil:0,perigo:0},
+ // admin
+ ad:{fase:'idle',pub:false}
+};
+const esc=s=>(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const app=document.getElementById('app');
+
+/* ---------------- JACARÉ ---------------- */
+function gator(active){
+  const g=active?{body:'#4FA34F',dark:'#3C8A3C',hi:'#6FBF6F',line:'#16401A',mouth:'#7E2233',tongue:'#E06A86',teeth:'#FBF7EE'}:{body:'#BFC7C0',dark:'#A9B2AA',hi:'#D2D8D3',line:'#8A938C',mouth:'#CFB9BE',tongue:'#DEC7CD',teeth:'#FFFFFF'};
+  return `<svg width="34" height="29" viewBox="0 0 110 96" fill="none"><path d="M97,52 C72,44 42,40 18,40 C20,52 21,60 25,66 C50,62 76,58 97,52 Z" fill="${g.mouth}"/><path d="M30,60 C46,57 66,55 88,53 C82,62 60,64 40,63 C36,63 32,62 30,60 Z" fill="${g.tongue}"/><path d="M98,50 C100,38 95,28 82,28 C84,23 80,19 74,21 C70,22 69,27 70,30 C62,28 50,28 40,30 C28,32 19,35 13,38 C6,40 6,47 13,46 C10,44 11,47 17,46 C45,46 72,49 98,50 Z" fill="${g.body}" stroke="${g.line}" stroke-width="2" stroke-linejoin="round"/><path d="M40,31 C52,29 64,29 72,31 C66,33 52,33 42,34 C40,33 39,32 40,31 Z" fill="${g.hi}" opacity="0.7"/><path d="M98,56 C80,60 48,64 22,68 C17,69 15,74 20,77 C30,82 52,82 70,78 C85,75 95,66 98,56 Z" fill="${g.dark}" stroke="${g.line}" stroke-width="2" stroke-linejoin="round"/><g fill="${g.teeth}" stroke="${g.line}" stroke-width="0.8" stroke-linejoin="round"><path d="M24,45 L31,45 L27.5,52 Z"/><path d="M39,46 L46,46 L42.5,53 Z"/><path d="M54,47 L61,47 L57.5,54 Z"/><path d="M69,48 L76,48 L72.5,55 Z"/><path d="M84,50 L90,50 L87,56 Z"/><path d="M31,67 L38,67 L34.5,60 Z"/><path d="M47,65 L54,65 L50.5,58 Z"/><path d="M63,63 L70,63 L66.5,56 Z"/><path d="M79,60 L85,60 L82,54 Z"/></g><circle cx="76" cy="26" r="6.5" fill="${g.teeth}" stroke="${g.line}" stroke-width="2"/><circle cx="77" cy="27" r="3" fill="${g.line}"/><ellipse cx="15" cy="41.5" rx="1.6" ry="2.2" fill="${g.line}"/></svg>`;
+}
+
+/* ---------------- INÍCIO / CRONOGRAMA ---------------- */
+function viewInicio(){
+  const c=S.cr;
+  if(!c.criado){
+    const opt=(arr,key)=>arr.map(o=>`<button class="pill ${c[key]===o.v?'on':''}" data-cract="sel" data-k="${key}" data-v="${o.v}">${o.label}</button>`).join('');
+    return `<div class="wrap narrow">
+      <h1 style="font-size:24px;font-weight:800;">Olá, Djan</h1>
+      <p style="margin:6px 0 20px;font-size:14px;color:var(--text-sec);line-height:1.6;">Monte seu cronograma: diga a prova, o prazo e o tempo por dia. A IA distribui todo o edital em questões, com revisão embutida.</p>
+      <div class="card">
+        <h3 style="font-size:17px;font-weight:700;">Cronograma ResidIAMED</h3>
+        <p class="tag" style="margin:16px 0 8px;">QUAL PROVA</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${opt([{v:'ENARE',label:'ENARE'},{v:'SES-AC',label:'SES-AC'},{v:'Institucional',label:'Prova da instituição'}],'prova')}</div>
+        <p class="tag" style="margin:16px 0 8px;">PRAZO</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${opt([{v:12,label:'3 meses'},{v:24,label:'6 meses'},{v:48,label:'12 meses'}],'prazo')}</div>
+        <p class="tag" style="margin:16px 0 8px;">TEMPO POR DIA</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${opt([{v:15,label:'1h por dia'},{v:30,label:'2h por dia'},{v:45,label:'3h ou mais'}],'horas')}</div>
+        <button class="btn" style="margin-top:20px;" data-cract="gerar">Gerar cronograma</button>
+      </div>
+    </div>`;
+  }
+  // gerado
+  const total=c.prazo, reta=Math.max(2,Math.round(total*0.1)), rev=Math.round(total*0.2), cob=total-reta-rev;
+  let fase= c.semana>cob+rev?'reta':(c.semana>cob?'revisao':'cobertura');
+  const faseNome= fase==='cobertura'?'cobertura do edital':fase==='revisao'?'revisão intercalada':'reta final';
+  const metaNovas=c.horas, metaRev=Math.round(c.horas*0.4);
+  const novas= fase==='cobertura'?metaNovas:fase==='revisao'?Math.round(metaNovas*0.5):0;
+  const revF= fase==='cobertura'?metaRev:fase==='revisao'?Math.round(metaNovas*0.6):metaNovas;
+  const base=new Date(2026,10,23), fmt=o=>{const d=new Date(base);d.setDate(base.getDate()+o);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');};
+  const areas=[['SEG','Clínica Médica','Cardiologia — insuficiência cardíaca','Pneumologia'],['TER','Cirurgia','Abdome agudo inflamatório','Cardiologia'],['QUA','Pediatria','Neonatologia — icterícia','Abdome agudo'],['QUI','Gineco-Obstetrícia','Pré-natal, sífilis e ISTs','Neonatologia'],['SEX','Medicina Preventiva','SUS, epidemiologia e vigilância','Pré-natal'],['SÁB','Simulado',null,null],['DOM','Descanso',null,null]];
+  let dias=areas.map((a,i)=>{
+    const off=(c.semana-1)*7+i, sobre=fase==='cobertura'&&i===3, rem=fase==='cobertura'&&i===2, sel=c.selDia===i;
+    let bg= i===6?'#F5F4FB':(sobre?'var(--amber-bg)':'#FAF9FD'), bd= sel?'var(--primary)':(sobre?'var(--amber)':'var(--border)');
+    let inner='';
+    if(i===5) inner=`<div style="background:var(--success-bg);border-radius:7px;padding:6px 7px;"><p style="margin:0;font-size:10.5px;font-weight:600;color:var(--success);">Simulado</p><p style="margin:2px 0 0;font-size:10px;color:var(--text-sec);">${metaNovas*3} questões</p></div>`;
+    else if(i===6) inner=`<p style="margin:auto 0;font-size:10.5px;color:var(--text-sec);text-align:center;">Descanso</p>`;
+    else{ if(novas>0) inner+=`<div style="background:#fff;border-radius:7px;padding:6px 7px;"><div style="font-size:9px;font-weight:700;color:var(--primary-dark);">NOVAS · ${novas}</div><div style="font-size:10.5px;line-height:1.3;">${a[2]}</div></div>`;
+      inner+=`<div style="background:#fff;border-radius:7px;padding:6px 7px;margin-top:6px;"><div style="font-size:9px;font-weight:700;color:var(--success);">REVISÃO · ${revF}</div><div style="font-size:10.5px;line-height:1.3;">${a[3]}</div>${rem?'<div style="font-size:9px;color:var(--amber);background:var(--amber-bg);padding:1px 6px;border-radius:8px;display:inline-block;margin-top:4px;">↻ remarcada</div>':''}</div>`;
+      if(sobre) inner+=`<div style="margin-top:6px;font-size:9.5px;font-weight:600;color:var(--amber);background:var(--amber-bg);padding:3px 6px;border-radius:7px;text-align:center;">⚠ precisa +1h</div>`;
+    }
+    return `<button data-cract="dia" data-i="${i}" style="text-align:left;display:flex;flex-direction:column;gap:6px;min-height:140px;padding:9px;border-radius:12px;border:1.5px solid ${bd};background:${bg};">
+      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;font-weight:700;color:${i>4?'var(--text-sec)':'var(--primary-dark)'};">${a[0]}</span><span style="font-size:10px;color:var(--text-sec);">${fmt(off)}</span></div>${inner}</button>`;
+  }).join('');
+  let detalhe='';
+  if(c.selDia!==null){
+    const a=areas[c.selDia]; let r;
+    if(c.selDia===5) r='Simulado completo cronometrado — mede ritmo e tempo por questão.';
+    else if(c.selDia===6) r='Dia leve, sem conteúdo novo — só revisão opcional.';
+    else if(fase==='reta') r=revF+' questões de revisão de '+a[3]+'. Na reta final não entra matéria nova.';
+    else r=novas+' questões novas de '+a[2]+' + '+revF+' de revisão ('+a[3]+'). Se não terminar, é remarcado automaticamente.';
+    detalhe=`<div class="card" style="margin-top:14px;border-color:var(--primary);background:var(--primary-light);">
+      <div style="display:flex;justify-content:space-between;"><p style="margin:0;font-size:13.5px;font-weight:700;color:var(--primary-dark);">${a[0]} · ${a[1]}</p><button data-cract="fechardia" style="background:none;border:none;font-size:16px;color:var(--text-sec);">✕</button></div>
+      <p style="margin:8px 0 12px;font-size:12.5px;line-height:1.5;">${r}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;"><button class="btn-ghost" data-cract="acao" data-m="Conteúdo remarcado para o próximo dia.">Adiar</button><button class="btn-ghost" data-cract="acao" data-m="Próximo conteúdo puxado para hoje.">Antecipar</button><button class="btn" style="padding:8px 14px;" data-cract="acao" data-m="Dia concluído. Revisão agendada para daqui a 3 dias.">Concluir</button></div>
+      ${c.msg?`<p style="margin:12px 0 0;font-size:12px;color:var(--success);font-weight:600;">✓ ${c.msg}</p>`:''}
+    </div>`;
+  }
+  return `<div class="wrap">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;">
+      <div><h3 style="font-size:18px;font-weight:700;">Cronograma — ${c.prova}</h3><p style="margin:4px 0 0;font-size:13px;color:var(--text-sec);">${total} semanas · ~${metaNovas} novas + ${metaRev} de revisão por dia</p></div>
+      <div style="display:flex;gap:8px;align-items:center;"><div class="seg"><button class="${c.cview==='semanal'?'on':''}" data-cract="cview" data-v="semanal">Semanal</button><button class="${c.cview==='mensal'?'on':''}" data-cract="cview" data-v="mensal">Mensal</button></div><button class="btn-ghost" data-cract="editar">Editar</button></div>
+    </div>
+    <div style="display:flex;border-radius:8px;overflow:hidden;height:10px;margin:14px 0 8px;"><div style="width:${Math.round(cob/total*100)}%;background:var(--primary);"></div><div style="width:${Math.round(rev/total*100)}%;background:var(--success);"></div><div style="width:${Math.round(reta/total*100)}%;background:var(--amber);"></div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px;font-size:11.5px;color:var(--text-sec);"><span>■ Cobertura</span><span style="color:var(--success);">■ Revisão intercalada</span><span style="color:var(--amber);">■ Reta final</span></div>
+    ${c.cview==='semanal'?`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><button class="btn-ghost" style="padding:6px 12px;" data-cract="sem" data-d="-1">‹</button><span style="font-size:13px;font-weight:600;">Semana ${c.semana} de ${total} · ${faseNome}</span><button class="btn-ghost" style="padding:6px 12px;" data-cract="sem" data-d="1">›</button></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;">${dias}</div>${detalhe}`
+    :`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">${[...Array(28)].map((_,k)=>{const i=k%7,w=Math.floor(k/7),off=(c.semana-1+w)*7+i;let bg='var(--primary-light)',num=metaNovas+metaRev,col='var(--primary-dark)';if(i===5){bg='var(--success-bg)';num=metaNovas*3;col='var(--success)';}if(i===6){bg='#F5F4FB';num='—';col='var(--text-sec)';}const flag=w===0&&i===3;if(flag)bg='var(--amber-bg)';return `<div style="aspect-ratio:1;border-radius:9px;background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;"><span style="font-size:10px;color:var(--text-sec);">${fmt(off)}</span><span style="font-size:12px;font-weight:700;color:${col};">${num}</span>${flag?'<span style="font-size:8px;color:var(--amber);">⚠</span>':''}</div>`;}).join('')}</div>
+      <p style="margin:12px 0 0;font-size:11.5px;color:var(--text-sec);">Cada número é o total de questões do dia. Dias em âmbar precisam de mais tempo. Toque em Semanal para ver os conteúdos.</p>`}
+  </div>`;
+}
+
+/* ---------------- QUESTÕES (FILTROS) ---------------- */
+function viewQuestoes(){
+  const f=S.f;
+  const chip=(label,on,act,extra='')=>`<button class="pill ${on?'on':''}" data-fact="${act}" ${extra}>${label}</button>`;
+  const rapidos=[['erradas','Minhas erradas'],['incerto','Acertei no chute/dúvida'],['revisar','Para revisar hoje'],['novas','Nunca respondidas'],['comunidade','Mais erradas pela comunidade']]
+    .map(([k,l])=>chip(l,f.rapido[k],'rapido',`data-k="${k}"`)).join('');
+  const cadernos=[['Reta final ENARE'],['Erradas de Cirurgia'],['GO do zero'],['Simulado misto']]
+    .map(([n])=>`<button class="pill ${f.caderno===n?'on':''}" data-fact="caderno" data-n="${esc(n)}">🔖 ${n}</button>`).join('');
+  const areasHtml=AREAS.map(a=>{
+    const sel=!!f.areas[a.id], open=f.aberta===a.id;
+    const temas= open?`<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:12px;">${a.temas.map((tm,i)=>`<div><p class="tag" style="margin-bottom:6px;">${tm.t}</p><div style="display:flex;flex-wrap:wrap;gap:6px;">${tm.a.map((s,j)=>{const key=a.id+':'+i+':'+j;return `<button class="pill ${f.temas[key]?'on':''}" style="font-size:11.5px;padding:5px 11px;" data-fact="tema" data-k="${key}">${s}</button>`;}).join('')}</div></div>`).join('')}</div>`:'';
+    return `<div style="border:1.5px solid ${sel?'var(--primary)':'var(--border)'};border-radius:12px;padding:14px;background:${sel?'#F6F4FD':'#fff'};">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <button data-fact="area" data-k="${a.id}" style="flex:1;text-align:left;background:none;border:none;display:flex;align-items:center;gap:10px;">
+          <span style="width:20px;height:20px;border-radius:6px;border:2px solid ${sel?'var(--primary)':'#C9C3E8'};background:${sel?'var(--primary)':'#fff'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">${sel?'✓':''}</span>
+          <span style="font-size:14px;font-weight:600;">${a.nome}</span></button>
+        <span style="font-size:12px;color:var(--text-sec);white-space:nowrap;">${a.feitas}/${a.total}</span>
+      </div>
+      <button data-fact="vertemas" data-k="${a.id}" style="margin-top:10px;background:none;border:none;color:var(--primary);font-size:11.5px;font-weight:600;padding:0;">${open?'ocultar conteúdos ▲':'ver conteúdos ▾'}</button>
+      ${temas}
+    </div>`;
+  }).join('');
+  const bancas=['ENARE','SES-AC','USP-SP','UNICAMP','AMRIGS','SES-PE','UNIVASF'].map(v=>chip(v,f.bancas[v],'banca',`data-k="${v}"`)).join('');
+  const anos=['2025','2024','2023','2022','2021'].map(v=>chip(v,f.anos[v],'ano',`data-k="${v}"`)).join('');
+  const origem=['Prova de residência','Autoral IA','Simulado'].map(v=>chip(v,f.origem[v],'origem',`data-k="${v}"`)).join('');
+  const difs=['Fácil','Média','Difícil'].map(v=>chip(v,f.difs[v],'dif',`data-k="${v}"`)).join('');
+  const qtds=[[10,'10'],[20,'20'],[40,'40'],['livre','Livre']].map(([v,l])=>chip(l,f.qtd===v,'qtd',`data-v="${v}"`)).join('');
+  // contagem
+  const nsel=o=>Object.values(o).filter(Boolean).length;
+  const selA=AREAS.filter(a=>f.areas[a.id]);
+  let pool= selA.length? selA.reduce((s,a)=>s+a.total,0): AREAS.reduce((s,a)=>s+a.total,0);
+  const rf={erradas:.28,incerto:.15,revisar:.12,novas:.45,comunidade:.3}; Object.keys(rf).forEach(k=>{if(f.rapido[k])pool*=rf[k];});
+  const nB=nsel(f.bancas),nY=nsel(f.anos),nD=nsel(f.difs),nO=nsel(f.origem),nT=nsel(f.temas);
+  if(nB)pool*=nB/7; if(nY)pool*=nY/5; if(nD)pool*=nD/3; if(nO)pool*=nO/3; if(nT)pool*=Math.min(1,nT*0.14);
+  const resultado=Math.max(0,Math.round(pool)).toLocaleString('pt-BR');
+  const tempo= f.qtd==='livre'?'Sem limite.':'≈ '+Math.round(f.qtd*1.7)+' min nesta sessão.';
+  const comecar= f.qtd==='livre'?'Começar':'Começar '+f.qtd+' questões';
+  return `<div class="wrap">
+    <h1 style="font-size:22px;font-weight:800;">Questões</h1>
+    <p style="margin:6px 0 18px;font-size:13.5px;color:var(--text-sec);">Monte sua sessão por área, conteúdo, banca ou pelos seus pontos fracos. Dois cliques e você resolve.</p>
+    <div style="border:1.5px dashed var(--primary);border-radius:14px;padding:16px;background:#FBFAFE;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+      <div><p style="margin:0;font-size:13.5px;font-weight:600;color:var(--primary-dark);">Importar provas e Anki</p><p style="margin:3px 0 0;font-size:12px;color:var(--text-sec);">Ao anexar provas ou decks, as questões entram aqui organizadas por banca, ano e conteúdo.</p></div>
+      <button class="btn" data-nav="admin">+ Adicionar material</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><span class="tag">MODO</span><div class="seg"><button class="${f.modo==='treino'?'on':''}" data-fact="modo" data-v="treino">Treino</button><button class="${f.modo==='simulado'?'on':''}" data-fact="modo" data-v="simulado">Simulado</button></div><span style="font-size:12px;color:var(--text-sec);">${f.modo==='treino'?'Feedback na hora.':'Sem feedback até o fim, cronometrado.'}</span></div>
+    <div style="margin-bottom:16px;"><p style="margin:0 0 10px;font-size:14px;font-weight:700;">Cadernos salvos</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${cadernos}<button class="pill" style="border-style:dashed;color:var(--primary);">+ Salvar filtros atuais</button></div></div>
+    <div class="card" style="margin-bottom:16px;"><p style="margin:0 0 4px;font-size:14px;font-weight:700;">Filtros rápidos</p><p style="margin:0 0 12px;font-size:12px;color:var(--text-sec);">Revisar o que você errou e misturar temas rende mais que repetir o que já domina.</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${rapidos}</div>
+      <label style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);cursor:pointer;"><span data-fact="inter" style="width:42px;height:24px;border-radius:14px;background:${f.inter?'var(--primary)':'#CFC9E6'};position:relative;flex-shrink:0;"><span style="position:absolute;top:2px;left:${f.inter?'20px':'2px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s;"></span></span><span style="font-size:12.5px;"><b>Misturar áreas (prática intercalada)</b> — alterna temas na sessão, melhora a retenção.</span></label>
+    </div>
+    <div class="card" style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><p style="margin:0;font-size:14px;font-weight:700;">Áreas e conteúdos</p><div class="seg"><button class="${f.trilha==='direto'?'on':''}" data-fact="trilha" data-v="direto">Acesso Direto</button><button class="${f.trilha==='ciclo'?'on':''}" data-fact="trilha" data-v="ciclo">Ciclo UFAC</button></div></div>
+      ${f.trilha==='direto'?`<div style="display:flex;flex-direction:column;gap:10px;">${areasHtml}</div>`:`<div class="grid4">${[...Array(8)].map((_,i)=>`<button class="pill" style="padding:14px 8px;">${i+1}º período</button>`).join('')}</div><p style="margin:12px 0 0;font-size:12px;color:var(--text-sec);">As matérias de cada período aparecem assim que você adicionar o cronograma da UFAC.</p>`}
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <p style="margin:0 0 10px;font-size:14px;font-weight:700;">Mais filtros</p>
+      <p class="tag" style="margin:0 0 8px;">BANCA</p><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">${bancas}</div>
+      <p class="tag" style="margin:0 0 8px;">ANO</p><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">${anos}</div>
+      <p class="tag" style="margin:0 0 8px;">ORIGEM</p><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">${origem}</div>
+      <p class="tag" style="margin:0 0 8px;">DIFICULDADE</p><div style="display:flex;flex-wrap:wrap;gap:7px;">${difs}</div>
+    </div>
+    <div class="card" style="margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;"><div><p style="margin:0;font-size:14px;font-weight:700;">Tamanho da sessão</p><p style="margin:3px 0 0;font-size:12px;color:var(--text-sec);">${tempo}</p></div><div style="display:flex;flex-wrap:wrap;gap:7px;">${qtds}</div></div>
+    <div style="position:sticky;bottom:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.04);">
+      <div><p style="margin:0;font-size:16px;font-weight:700;color:var(--primary-dark);">${resultado} questões</p><p style="margin:1px 0 0;font-size:12px;color:var(--text-sec);">Demonstração: a sessão abre com as 10 cadastradas.</p></div>
+      <div style="display:flex;gap:10px;"><button class="btn-ghost" data-fact="limpar">Limpar</button><button class="btn" data-fact="comecar">${comecar} ›</button></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- TRAINER ---------------- */
+function viewTrainer(){
+  const t=S.t, q=QUESTIONS[t.i];
+  const alts=q.alts.map((a,idx)=>{
+    const [letter,text,correct,exp]=a, isSel=t.sel===idx, isStruck=!!t.struck[idx];
+    let rb='#C9C3E8',rbg='#fff',rt='var(--text-sec)',tc='var(--text)';
+    if(t.answered){ if(correct){rb='#2F9E6E';rbg='#2F9E6E';rt='#fff';tc='#1C5B41';} else if(isSel){rb='#C85A42';rbg='#C85A42';rt='#fff';tc='#7A3123';} }
+    else if(isSel){rb='#4B3F8F';rbg='#4B3F8F';rt='#fff';tc='#4B3F8F';}
+    return `<div class="alt"><button class="alt-main" data-tact="sel" data-i="${idx}"><span class="radio" style="border-color:${rb};background:${rbg};color:${rt};">${letter}</span><span style="min-width:0;"><span style="display:block;font-size:14.5px;line-height:1.6;color:${tc};text-decoration:${isStruck?'line-through':'none'};">${esc(text)}</span>${t.answered?`<span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;color:${correct?'#1C5B41':'#7A3123'};padding-top:8px;border-top:1px dashed var(--border);">${esc(exp)}</span>`:''}</span></button><button class="disc" data-tact="disc" data-i="${idx}" style="background:${isStruck?'#E7F6EF':'#fff'};">${gator(isStruck)}</button></div>`;
+  }).join('');
+  let conf='';
+  if(t.sel!==null && !t.answered){
+    const cb=(k,l)=>`<button class="pill ${t.conf===k?'on':''}" data-tact="conf" data-k="${k}">${l}</button>`;
+    conf=`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 14px;background:var(--primary-light);border-radius:12px;margin-top:16px;"><span style="font-size:12.5px;font-weight:600;color:var(--primary-dark);">Antes de confirmar — qual sua confiança?</span>${cb('certeza','Tenho certeza')}${cb('duvida','Fiquei na dúvida')}${cb('chute','Chutei')}</div>`;
+  }
+  let post='';
+  if(t.answered){
+    const correct=q.alts[t.sel][2]===1;
+    let mc='';
+    if(correct&&t.conf==='chute')mc=`<span class="pill" style="background:#FBF0DD;border:none;color:#8A5A08;">⚠ Acertou no chute</span>`;
+    else if(correct&&t.conf==='duvida')mc=`<span class="pill" style="background:#FBF0DD;border:none;color:#8A5A08;">Acertou com dúvida</span>`;
+    else if(correct&&t.conf==='certeza')mc=`<span class="pill" style="background:#E7F6EF;border:none;color:#1C5B41;">✓ Acerto seguro</span>`;
+    let rev;
+    if(!correct) rev=`<div style="background:#FBEBE6;border:1px solid #F0C9BE;border-radius:12px;padding:14px 16px;"><p class="tag" style="color:#C85A42;">REVISÃO AGENDADA</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5;">Esse conceito volta em 2 questões nos próximos dias + 1 flashcard.</p></div>`;
+    else if(t.conf==='chute'||t.conf==='duvida') rev=`<div style="background:#FBF0DD;border:1px solid #EAD9B0;border-radius:12px;padding:14px 16px;"><p class="tag" style="color:#B5790E;">REFORÇO LEVE AGENDADO</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5;">Acertou sem segurança — 1 questão de reforço entra nos próximos dias.</p></div>`;
+    else rev=`<div style="background:#E7F6EF;border:1px solid #BFE3D1;border-radius:12px;padding:14px 16px;"><p class="tag" style="color:#1C5B41;">SEM REFORÇO NECESSÁRIO</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5;">Acerto seguro — registrado no seu mapa de domínio.</p></div>`;
+    const porque= correct?'':`<div><p style="margin:0 0 8px;font-size:12.5px;font-weight:600;">Por que você errou? (1 toque)</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${[['nao_lembrava','Não lembrava'],['leu_errado','Li errado / pegadinha'],['confundiu','Confundi conceitos'],['nao_sabia','Não sabia mesmo']].map(([k,l])=>`<button class="pill ${t.erro===k?'on':''}" data-tact="erro" data-k="${k}">${l}</button>`).join('')}</div>${t.erro?`<p style="margin:8px 0 0;font-size:12px;color:var(--success);font-weight:600;">✓ ${ERRO_MSG[t.erro]}</p>`:''}</div>`;
+    post=`<div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;"><span class="pill" style="background:#F0EEF9;border:none;color:var(--text-sec);">Dificuldade: ${q.dif}</span><span class="pill" style="background:var(--success-bg);border:none;color:#1C5B41;">${q.acc}% acertaram</span>${mc}</div>
+      <div style="background:#F9F8FD;border:1px solid var(--border);border-radius:12px;padding:14px 16px;"><p class="tag" style="color:var(--primary);">FUNDAMENTO TEÓRICO</p><p style="margin:6px 0 0;font-size:13px;line-height:1.55;">${esc(q.fund)}</p><p style="margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text-sec);"><b style="color:var(--text);">Fonte:</b> ${esc(q.fonte)}</p></div>
+      ${rev}${porque}
+      <button class="btn-ghost" data-tact="ia" style="align-self:flex-start;">Tirar dúvida com a IA</button>
+      ${t.showIa?`<div style="background:#F9F8FD;border:1px solid var(--border);border-radius:12px;padding:14px 16px;"><p class="tag">PRÉVIA — CHAT COM IA</p><div style="margin-top:8px;margin-left:auto;max-width:85%;background:var(--primary-light);border-radius:10px 10px 2px 10px;padding:9px 12px;"><p style="margin:0;font-size:13px;color:var(--primary-dark);">${esc(q.aiq)}</p></div><div style="margin-top:8px;max-width:85%;background:#fff;border:1px solid var(--border);border-radius:10px 10px 10px 2px;padding:9px 12px;"><p style="margin:0;font-size:13px;">${esc(q.aia)}</p></div></div>`:''}
+    </div>`;
+  }
+  return `<div class="wrap narrow">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;">
+      <div style="display:flex;flex-wrap:wrap;gap:22px;"><div><p class="tag">BANCA</p><p style="margin:2px 0 0;font-size:13px;font-weight:600;">${q.banca}</p></div><div><p class="tag">ANO</p><p style="margin:2px 0 0;font-size:13px;font-weight:600;">${q.ano}</p></div><div><p class="tag">CONTEÚDO</p><p style="margin:2px 0 0;font-size:13px;font-weight:600;">${q.conteudo}</p></div></div>
+      <span style="font-size:13px;color:var(--text-sec);">Questão ${t.i+1} de ${QUESTIONS.length}</span>
+    </div>
+    <div style="height:4px;border-radius:4px;background:var(--border);overflow:hidden;margin:14px 0 18px;"><div style="height:100%;background:var(--primary);width:${Math.round((t.i+1)/QUESTIONS.length*100)}%;"></div></div>
+    <div class="card">
+      <p style="font-size:15px;line-height:1.7;margin:0;">${esc(q.enunciado)}</p>
+      <p style="font-size:15px;line-height:1.7;margin:14px 0 0;font-weight:600;">${esc(q.comando)}</p>
+      <p style="font-size:12px;color:var(--text-sec);margin:14px 0 0;">Use o jacaré para descartar as alternativas que você já eliminou.</p>
+      <div style="margin-top:4px;">${alts}</div>
+      ${conf}${post}
+      <div style="display:flex;justify-content:space-between;margin-top:18px;"><button class="btn-ghost" data-nav="questoes">Voltar aos filtros</button><button class="btn" data-tact="submit">${t.answered?(t.i<QUESTIONS.length-1?'Próxima questão':'Recomeçar'):'Confirmar resposta'}</button></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- DASHBOARD ---------------- */
+function viewDashboard(){
+  const s=S.stats;
+  const acc= s.resp? Math.round(s.acertos/s.resp*100)+'%':'—';
+  return `<div class="wrap">
+    <h1 style="font-size:22px;font-weight:800;">Dashboard</h1>
+    <p style="margin:6px 0 18px;font-size:13.5px;color:var(--text-sec);">Seus números aparecem conforme você resolve as questões.</p>
+    <div class="grid4">
+      <div class="card"><p style="margin:0;font-size:12.5px;color:var(--text-sec);">Respondidas</p><p style="margin:6px 0 0;font-size:26px;font-weight:700;">${s.resp}</p></div>
+      <div class="card"><p style="margin:0;font-size:12.5px;color:var(--text-sec);">Acerto</p><p style="margin:6px 0 0;font-size:26px;font-weight:700;color:var(--success);">${acc}</p></div>
+      <div class="card"><p style="margin:0;font-size:12.5px;color:var(--text-sec);">Frágeis (acertou sem segurança)</p><p style="margin:6px 0 0;font-size:26px;font-weight:700;color:var(--amber);">${s.fragil}</p></div>
+      <div class="card"><p style="margin:0;font-size:12.5px;color:var(--text-sec);">Perigosas (errou achando que sabia)</p><p style="margin:6px 0 0;font-size:26px;font-weight:700;color:var(--danger);">${s.perigo}</p></div>
+    </div>
+    <div class="grid2" style="margin-top:16px;">
+      <div class="card"><h3 style="font-size:15px;font-weight:700;">Desempenho por conteúdo</h3><p style="margin:10px 0 0;font-size:12.5px;color:var(--text-sec);line-height:1.5;">Sem dados ainda. Conforme você resolve, o acerto por conteúdo aparece aqui.</p></div>
+      <div class="card"><h3 style="font-size:15px;font-weight:700;">Revisão espaçada</h3><p style="margin:10px 0 0;font-size:12.5px;color:var(--text-sec);line-height:1.5;">Cada questão errada ou acertada sem segurança volta em intervalos crescentes (1 → 3 → 7 → 16 → 35 dias). Vão entrando aqui conforme você erra.</p></div>
+    </div>
+    <div class="card" style="margin-top:16px;"><h3 style="font-size:15px;font-weight:700;">Calibração — confiança × acerto</h3><p style="margin:8px 0 0;font-size:12.5px;color:var(--text-sec);line-height:1.5;">O <b style="color:var(--danger)">perigoso</b> é "tinha certeza e errei"; o <b style="color:var(--amber)">frágil</b> é "acertei sem segurança". Os dois viram prioridade de revisão e se preenchem com seu uso.</p></div>
+  </div>`;
+}
+
+/* ---------------- FLASHCARDS / RESUMOS ---------------- */
+function placeholder(titulo,desc){
+  return `<div class="wrap narrow"><div class="card" style="text-align:center;padding:48px 28px;"><div style="width:56px;height:56px;border-radius:16px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;">🗂️</div><h2 style="font-size:18px;font-weight:700;">${titulo} — em construção</h2><p style="margin:10px auto 0;max-width:420px;font-size:13.5px;color:var(--text-sec);line-height:1.6;">${desc}</p><span class="pill" style="margin-top:16px;display:inline-block;background:var(--primary-light);border:none;color:var(--primary-dark);">Em breve</span></div></div>`;
+}
+
+/* ---------------- ADMIN ---------------- */
+function viewAdmin(){
+  const ad=S.ad;
+  const materiais=[['Protocolo de IST — Ministério da Saúde (2022).pdf','Diretriz oficial · 142 páginas','GO / Preventiva'],['QUESTOES_CONSOLIDADAS_por_tema.md','Provas antigas com gabarito · ~60 questões','Cirurgia / Clínica'],['Anki — Síndromes Hipertensivas na Gestação.txt','Deck · 43 cartões','GO']]
+    .map(m=>`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#F9F8FD;"><div><p style="margin:0;font-size:13px;font-weight:600;">${m[0]}</p><p style="margin:1px 0 0;font-size:11.5px;color:var(--text-sec);">${m[1]}</p></div><span class="pill" style="background:var(--primary-light);border:none;color:var(--primary);font-size:11px;">${m[2]}</span></div>`).join('');
+  const fila=[['GO · Pré-natal','Gestante no 1º trimestre com teste rápido reagente para sífilis. Qual a conduta imediata?',1,''],['GO · ISTs','Úlcera genital única, indolor, de bordas endurecidas. Diagnóstico e conduta?',1,''],['Pediatria · Neonato','RN de mãe com sífilis não tratada. Qual investigação é obrigatória antes da alta?',1,''],['GO · ISTs','Esquema de 1ª escolha para gonorreia não complicada em adulto.',0,'esquema pode estar desatualizado — conferir com o PCDT 2022.'],['Preventiva','Sobre a notificação compulsória da sífilis, assinale a correta.',0,'gabarito ambíguo entre duas alternativas — ajustar enunciado.']]
+    .map(q=>`<div style="border:1px solid ${q[2]?'var(--border)':'#EAD9B0'};border-radius:12px;padding:14px;background:${q[2]?'#fff':'#FEFCF6'};"><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;"><span class="pill" style="background:var(--primary-light);border:none;color:var(--primary);font-size:10.5px;padding:3px 9px;">${q[0]}</span><span class="pill" style="font-size:10.5px;padding:3px 9px;border:none;background:${q[2]?'var(--success-bg)':'var(--amber-bg)'};color:${q[2]?'#1C5B41':'#8A5A08'};">${q[2]?'✓ Aprovada pelo revisor':'⚠ Sinalizada'}</span></div><p style="margin:0;font-size:13px;line-height:1.5;">${q[1]}</p>${q[3]?`<p style="margin:8px 0 0;font-size:11.5px;color:var(--amber);font-weight:600;">⚠ Revisor: ${q[3]}</p>`:''}</div>`).join('');
+  return `<div class="wrap">
+    <h1 style="font-size:22px;font-weight:800;">Área do administrador</h1>
+    <p style="margin:6px 0 18px;font-size:13.5px;color:var(--text-sec);">Você anexa o material; a IA elabora, um 2º agente revisa, e as aprovadas entram no banco separadas por conteúdo.</p>
+    <div class="card" style="margin-bottom:16px;"><p style="margin:0 0 14px;font-size:14px;font-weight:700;">1 · Anexar material</p>
+      <div style="border:1.5px dashed var(--primary);border-radius:12px;padding:24px;text-align:center;background:#FBFAFE;"><p style="margin:0;font-size:13.5px;font-weight:600;color:var(--primary-dark);">Arraste provas (PDF), Word, Anki ou cole o texto</p><button class="btn" style="margin-top:12px;">Selecionar arquivos</button></div>
+      <p class="tag" style="margin:16px 0 8px;">MATERIAIS ANEXADOS</p><div style="display:flex;flex-direction:column;gap:8px;">${materiais}</div>
+      <button class="btn" style="margin-top:16px;" data-adact="gerar">Gerar questões ›</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;"><p style="margin:0 0 14px;font-size:14px;font-weight:700;">2 · Pipeline de dois agentes</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:#F9F8FD;"><p style="margin:0;font-size:13px;font-weight:700;color:var(--primary-dark);">✍️ Elaborador</p><p style="margin:6px 0 0;font-size:11.5px;color:var(--text-sec);line-height:1.5;">Gera questões com gabarito, comentário e fundamento + fonte.</p></div>
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:#F9F8FD;"><p style="margin:0;font-size:13px;font-weight:700;color:var(--primary-dark);">🔍 Revisor (QA)</p><p style="margin:6px 0 0;font-size:11.5px;color:var(--text-sec);line-height:1.5;">Checa gabarito, fonte, duplicata, ambiguidade e aderência. Reprova o que não passa.</p></div>
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:#F9F8FD;"><p style="margin:0;font-size:13px;font-weight:700;color:var(--primary-dark);">📚 Banco</p><p style="margin:6px 0 0;font-size:11.5px;color:var(--text-sec);line-height:1.5;">Aprovadas entram como Autoral IA, separadas por área, tema e assunto.</p></div>
+      </div>
+      ${ad.fase==='gerado'?`<div style="margin-top:14px;padding:12px 16px;border-radius:10px;background:var(--primary-light);"><p style="margin:0;font-size:12.5px;font-weight:600;color:var(--primary-dark);">Último lote: 12 geradas → 10 aprovadas, 2 sinalizadas.</p></div>`:''}
+    </div>
+    ${ad.fase==='gerado'?`<div class="card"><div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;"><p style="margin:0;font-size:14px;font-weight:700;">3 · Fila de aprovação</p><button class="btn" style="background:var(--success);padding:10px 16px;" data-adact="pub">Publicar 10 aprovadas</button></div><p style="margin:0 0 14px;font-size:12px;color:var(--text-sec);">O revisor já aprovou ou sinalizou cada uma. Você dá o ok final.</p>${ad.pub?`<div style="margin-bottom:14px;padding:12px 16px;border-radius:10px;background:var(--success-bg);"><p style="margin:0;font-size:12.5px;font-weight:600;color:#1C5B41;">✓ 10 questões publicadas no banco. As 2 sinalizadas ficaram para ajuste.</p></div>`:''}<div style="display:flex;flex-direction:column;gap:10px;">${fila}</div></div>`:''}
+  </div>`;
+}
+
+/* ---------------- RENDER + NAV ---------------- */
+function render(){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active', b.dataset.nav===S.view || (S.view==='main'&&b.dataset.nav==='questoes')));
+  let html='';
+  if(S.view==='inicio') html=viewInicio();
+  else if(S.view==='questoes') html=viewQuestoes();
+  else if(S.view==='main') html=viewTrainer();
+  else if(S.view==='dashboard') html=viewDashboard();
+  else if(S.view==='flashcards') html=placeholder('Flashcards','Aqui vão entrar seus decks do Anki (ciclo básico e clínico). Em breve você revisa por cartões ligados às questões que errou.');
+  else if(S.view==='resumos') html=placeholder('Resumos','Resumos objetivos por tema, ligados às questões e às fontes. Em breve.');
+  else if(S.view==='admin') html=viewAdmin();
+  app.innerHTML=html;
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function nav(v){ S.view=v; render(); }
+
+document.body.addEventListener('click',e=>{
+  const navb=e.target.closest('[data-nav]'); if(navb){ nav(navb.dataset.nav); return; }
+  const cr=e.target.closest('[data-cract]'); if(cr){ handleCrono(cr); return; }
+  const f=e.target.closest('[data-fact]'); if(f){ handleFiltro(f); return; }
+  const t=e.target.closest('[data-tact]'); if(t){ handleTrainer(t); return; }
+  const a=e.target.closest('[data-adact]'); if(a){ if(a.dataset.adact==='gerar'){S.ad.fase='gerado';S.ad.pub=false;} if(a.dataset.adact==='pub'){S.ad.pub=true;} render(); return; }
+});
+
+function handleCrono(el){
+  const c=S.cr, act=el.dataset.cract;
+  if(act==='sel'){ c[el.dataset.k]= isNaN(+el.dataset.v)?el.dataset.v:+el.dataset.v; }
+  else if(act==='gerar'){ if(c.prova&&c.prazo&&c.horas){c.criado=true;c.cview='semanal';c.semana=1;c.selDia=null;c.msg=null;} }
+  else if(act==='editar'){ c.criado=false; }
+  else if(act==='cview'){ c.cview=el.dataset.v; }
+  else if(act==='sem'){ c.semana=Math.min(c.prazo,Math.max(1,c.semana+ +el.dataset.d)); c.selDia=null; c.msg=null; }
+  else if(act==='dia'){ c.selDia= c.selDia===+el.dataset.i?null:+el.dataset.i; c.msg=null; }
+  else if(act==='fechardia'){ c.selDia=null; c.msg=null; }
+  else if(act==='acao'){ c.msg=el.dataset.m; }
+  render();
+}
+function handleFiltro(el){
+  const f=S.f, act=el.dataset.fact, k=el.dataset.k;
+  const tog=(o,key)=>{o[key]=!o[key];};
+  if(act==='modo') f.modo=el.dataset.v;
+  else if(act==='trilha') f.trilha=el.dataset.v;
+  else if(act==='inter') f.inter=!f.inter;
+  else if(act==='rapido') tog(f.rapido,k);
+  else if(act==='area') tog(f.areas,k);
+  else if(act==='tema') tog(f.temas,k);
+  else if(act==='vertemas') f.aberta= f.aberta===k?null:k;
+  else if(act==='banca') tog(f.bancas,k);
+  else if(act==='ano') tog(f.anos,k);
+  else if(act==='origem') tog(f.origem,k);
+  else if(act==='dif') tog(f.difs,k);
+  else if(act==='qtd') f.qtd= el.dataset.v==='livre'?'livre':+el.dataset.v;
+  else if(act==='caderno'){ const n=el.dataset.n; f.caderno= f.caderno===n?null:n; }
+  else if(act==='limpar'){ S.f={modo:f.modo,trilha:'direto',inter:false,rapido:{},areas:{},temas:{},aberta:null,bancas:{},anos:{},difs:{},origem:{},qtd:20,caderno:null}; }
+  else if(act==='comecar'){ S.t={i:0,sel:null,conf:null,answered:false,erro:null,struck:{}}; nav('main'); return; }
+  render();
+}
+function handleTrainer(el){
+  const t=S.t, act=el.dataset.tact;
+  if(act==='disc'){ const i=+el.dataset.i; t.struck[i]=!t.struck[i]; }
+  else if(act==='sel'){ if(!t.answered){ t.sel=+el.dataset.i; } }
+  else if(act==='conf'){ t.conf=el.dataset.k; }
+  else if(act==='erro'){ t.erro=el.dataset.k; }
+  else if(act==='ia'){ t.showIa=!t.showIa; }
+  else if(act==='submit'){
+    if(!t.answered){ if(t.sel===null) return; t.answered=true;
+      const correct=QUESTIONS[t.i].alts[t.sel][2]===1; S.stats.resp++; if(correct)S.stats.acertos++;
+      if(correct&&(t.conf==='chute'||t.conf==='duvida'))S.stats.fragil++; if(!correct&&t.conf==='certeza')S.stats.perigo++;
+    } else { t.i= t.i<QUESTIONS.length-1? t.i+1:0; t.sel=null;t.conf=null;t.answered=false;t.erro=null;t.struck={};t.showIa=false; }
+  }
+  render();
+}
+render();
+</script>
+</body>
+</html>
